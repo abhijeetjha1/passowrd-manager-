@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import messagebox
 import random
+import pyperclip
+import json
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 def genrate_password():
     letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
@@ -30,6 +32,7 @@ def genrate_password():
 
 
     password_input.insert(END,password)
+    pyperclip.copy(password)
 
 
 
@@ -44,17 +47,19 @@ canvas.grid(row=0,column=1)
 
 website_text=Label(text="Website:")
 website_text.grid(row=1,column=0)
-website_input=Entry(width=45)
+website_input=Entry(width=26)
 website_input.focus()
-website_input.grid(row=1,column=1,columnspan=2)
+website_input.grid(row=1,column=1)
 
 email_txt=Label(text="email/username:")
+email_txt.config(padx=5,pady=5)
 email_txt.grid(row=2,column=0)
 email_input=Entry(width=45)
 email_input.insert(END,"discoverwithabhi@gmail.com")
 email_input.grid(row=2,column=1,columnspan=2)
 
 password_text=Label(text="Password:")
+password_text.config(padx=5,pady=5)
 password_text.grid(row=3,column=0)
 password_input=Entry(width=27)
 password_input.grid(row=3,column=1)
@@ -73,16 +78,45 @@ def Add():
     if len(w)==0 or len(p)==0 :
         messagebox.showwarning(title="Opps!" ,message="Please don't leave password or website empty")
     else:
-        data = f"{w} | {e} | {p} \n"
-        with open("data.txt", "a") as dat:
-            dat.writelines(data)
+        data={w: {"email" :e ,
+                "password" : p
+                  } } # we enter data in a json file as a nested dict
+        try:
+            with open("data.json", "r") as dat:
+                new=json.load(dat)
+                new.update(data)
+        except:
+            with open("data.json", "w") as dat:
+                json.dump(data, dat, indent=4)
+
+        else :
+            with open("data.json", "w") as dat:
+                json.dump(new,dat,indent=4)
         website_input.delete(0,END)
         password_input.delete(0,END)
         messagebox.showinfo(title="Saved",message="your password has been saved")
 
 add_butt=Button(text="Add",width=38,command=Add)
 add_butt.grid(row=4,column=1,columnspan=2)
+##### SEARCH MECHANISM #####
+def searching():
+    w= website_input.get()
+    with open("data.json" ,"r") as dat:
+        websites=json.load(dat)
+        if w in websites:
+            email=websites[w]["email"]
+            password=websites[w]["password"]
+            messagebox.showinfo(title=w,message=f"email :{email} \n password : {password} \n")
+            pyperclip.copy(password)
+        else :
+            messagebox.showinfo(title=w,message="website not found")
 
 
 
+
+
+
+
+search=Button(text="search" ,width=15,command=searching)
+search.grid(row=1,column=2)
 window.mainloop()
